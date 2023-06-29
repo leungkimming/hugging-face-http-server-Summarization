@@ -13,6 +13,9 @@ class CompletionGenerator(InferenceGenerator.InferenceGenerator):
         super().__init__(model_name)
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         self.tokenizer.pad_token = self.tokenizer.eos_token
+        if self.tokenizer.eos_token is None:
+            self.tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+            self.tokenizer.add_special_tokens({'eos_token': '[PAD]'})
 
     def perform_inference(self, prompt, context, max_tokens):
         model = AutoModelForCausalLM.from_pretrained(self.model_name, is_decoder=True)
@@ -29,6 +32,9 @@ class CompletionGenerator(InferenceGenerator.InferenceGenerator):
             # temperature = 0.8,
             no_repeat_ngram_size=4,
             early_stopping=True,
+            max_tokens=max_tokens,
+            pad_token_id=self.tokenizer.pad_token_id,
+            eos_token_id=self.tokenizer.eos_token_id,
         )
 
         return (

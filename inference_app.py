@@ -3,10 +3,13 @@
 # Importing flask module in the project is mandatory
 # An object of Flask class is our WSGI application.
 import argparse
+import traceback
 
 from flask import Flask, json, jsonify, render_template, request
 from utils import (
     CompletionGenerator,
+    SummarizationGenerator,
+    QnaGenerator,
     EmbeddingGenerator,
     ImageGenerator,
     create_responses,
@@ -46,11 +49,25 @@ def images_docs():
 def receive_completion_by_model(model):
     return process_completion_request(request, model)
 
-
 @app.route("/completions/<organization>/<model>", methods=["POST"])
 def receive_completion_by_organization_model(organization, model):
     return process_completion_request(request, f"{organization}/{model}")
 
+@app.route("/summarization/<model>", methods=["POST"])
+def receive_summarization_by_model(model):
+    return process_summarization_request(request, model)
+
+@app.route("/summarization/<organization>/<model>", methods=["POST"])
+def receive_summarization_by_organization_model(organization, model):
+    return process_summarization_request(request, f"{organization}/{model}")
+
+@app.route("/qna/<model>", methods=["POST"])
+def receive_qna_by_model(model):
+    return process_qna_request(request, model)
+
+@app.route("/qna/<organization>/<model>", methods=["POST"])
+def receive_qna_by_organization_model(organization, model):
+    return process_qna_request(request, f"{organization}/{model}")
 
 @app.route("/embeddings/<model>", methods=["POST"])
 def receive_embedding_by_model(model):
@@ -100,10 +117,73 @@ def process_completion_request(request, model):
         )
     except Exception as e:
         print(e)
-        return "Sorry, unable to perform sentence completion with model {}".format(
-            model
+        return "Sorry, unable to perform sentence completion with model {0} ({1})".format(
+            model, traceback.format_exc()
         )
 
+def process_summarization_request(request, model):
+    request_data = request.data
+    json_data = json.loads(request_data)
+    try:
+        prompt = json_data["inputs"]
+        if "context" in json_data:
+            context = json_data["context"]
+        else:
+            context = ""
+
+        if "max_tokens" in json_data:
+            max_tokens = json_data["max_tokens"]
+        else:
+            max_tokens = 32
+
+        inference_generator = SummarizationGenerator.SummarizationGenerator(model)
+        (
+            result,
+            num_prompt_tokens,
+            num_result_tokens,
+        ) = inference_generator.perform_inference(prompt, context, max_tokens)
+        return jsonify(
+            create_responses.create_completion_response(
+                result, model, num_prompt_tokens, num_result_tokens
+            )
+        )
+    except Exception as e:
+        print(e)
+        return "Sorry, unable to perform sentence summarization with model {0} ({1})".format(
+            model, traceback.format_exc()
+        )
+
+def process_qna_request(request, model):
+    request_data = request.data
+    json_data = json.loads(request_data)
+    try:
+        prompt = json_data["inputs"]
+        if "context" in json_data:
+            context = json_data["context"]
+        else:
+            context = ""
+
+        if "max_tokens" in json_data:
+            max_tokens = json_data["max_tokens"]
+        else:
+            max_tokens = 32
+
+        inference_generator = QnaGenerator.QnaGenerator(model)
+        (
+            result,
+            num_prompt_tokens,
+            num_result_tokens,
+        ) = inference_generator.perform_inference(prompt, context, max_tokens)
+        return jsonify(
+            create_responses.create_completion_response(
+                result, model, num_prompt_tokens, num_result_tokens
+            )
+        )
+    except Exception as e:
+        print(e)
+        return "Sorry, unable to perform QNA with model {0} ({1})".format(
+            model, traceback.format_exc()
+        )
 
 def process_embedding_request(request, model):
     request_data = request.data
@@ -117,7 +197,7 @@ def process_embedding_request(request, model):
         )
     except Exception as e:
         print(e)
-        return "Sorry, unable to generate embeddings with model {}".format(model)
+        return "Generate embeddings with model {0} raise error:{1}".format(model, e)
 
 
 def process_image_generation_request(request, model):

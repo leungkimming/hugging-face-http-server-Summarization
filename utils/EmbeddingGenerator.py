@@ -10,7 +10,10 @@ class EmbeddingGenerator(InferenceGenerator.InferenceGenerator):
     def __init__(self, model_name):
         super().__init__(model_name)
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-        self.tokenizer.pad_token = self.tokenizer.eos_token
+        # self.tokenizer.pad_token = self.tokenizer.eos_token
+        # if self.tokenizer.pad_token is None:
+        #     self.tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+        #     self.tokenizer.add_special_tokens({'eos_token': '[PAD]'})
 
     def _mean_pooling(self, model_output, attention_mask):
         token_embeddings = model_output[
@@ -22,6 +25,7 @@ class EmbeddingGenerator(InferenceGenerator.InferenceGenerator):
         return x / y
 
     def perform_inference(self, sentences):
+        # model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
         model = AutoModel.from_pretrained(self.model_name)
         model.to(self.device)
 
