@@ -25,7 +25,6 @@ class EmbeddingGenerator(InferenceGenerator.InferenceGenerator):
         return x / y
 
     def perform_inference(self, sentences):
-        # model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
         model = AutoModel.from_pretrained(self.model_name)
         model.to(self.device)
 
