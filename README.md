@@ -1,4 +1,7 @@
 # Added Summarization and Q&A Generator
+# Run Redis service
+`docker run -d --name redis-stack-server -p 6379:6379 redis/redis-stack-server:latest`
+
 # Local Hugging Face Model Inteference Server
 
 > [!IMPORTANT]
@@ -19,6 +22,9 @@ This step will take some minutes to download Docker image dependencies.
 ## Running the Sample Container
 
 `docker run -p 5000:5000 -d hf_model_server`
+
+## with mount volume to exchange files with Windows
+`docker run -p 5000:5000 -d --volume //d/Repos/Labs/ChatGPT/hugging-face-http-server-main/misc:/app/misc hf_model_server`
 
 This will run the service at **`http://localhost:5000`**. Navigating to
 **`http://localhost:5000`** in a browser window will provide instruction on how

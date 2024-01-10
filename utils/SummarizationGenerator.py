@@ -44,9 +44,9 @@ class SummarizationGenerator(InferenceGenerator.InferenceGenerator):
             do_sample=False, 
             early_stopping=True,
             num_beams=8,
-            temperature=1.0,
-            top_k=None,
-            top_p=None,
+            temperature=0,
+            top_k=0.2,
+            top_p=0.2,
             eos_token_id=self.tokenizer.eos_token_id,
             no_repeat_ngram_size=3,
             num_return_sequences=1)
@@ -58,6 +58,9 @@ class SummarizationGenerator(InferenceGenerator.InferenceGenerator):
             0,
             0,
         )
+            # temperature=1.0,
+            # top_k=None,
+            # top_p=None,
 #####################################################
         # model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
         # model.to(self.device)
